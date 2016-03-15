@@ -1,0 +1,23 @@
+﻿<#@ IntelliSenseLanguage processor="tangibleT4Editor" language="C#" #><#+ 
+void Template_AfxClass_Render(string ns, string name, string baseClass, string owner, bool hasDataContract, bool isPersistent, bool isAggregateRoot)
+{			
+#>using Afx.ObjectModel;<#=isPersistent ? "\r\nusing Afx.ObjectModel.Description.Data;" : string.Empty #> 
+using System;
+using System.Collections.Generic;
+using System.Linq;<#=hasDataContract ? "\r\nusing System.Runtime.Serialization;" : string.Empty #>
+using System.Text;
+using System.Threading.Tasks;
+
+namespace <#= ns #>
+{<#=hasDataContract ? "\r\n\t[DataContract(Namespace = Constants.WcfNamespace, IsReference = true)]" : string.Empty #><#=isPersistent ? "\r\n\t[PersistentObject]" : string.Empty #>  
+  public class <#= name #> : <#= baseClass == null ? (owner == null ? "AfxObject" : string.Format("AfxObject<{0}>", owner)) : baseClass #><#= isAggregateRoot ? ", IAggregateRoot" : string.Empty #>
+  {
+<#+ if (isAggregateRoot) {#>    #region IAggregateRoot
+
+    public int Revision { get; set; }
+    public DateTime? RevisionDate { get; set; }
+
+    #endregion
+<#+}#>  }
+}
+<#+}#>

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<CodeSnippets  xmlns="http://schemas.microsoft.com/VisualStudio/2005/CodeSnippet">
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <Title>Afx Owned Collection Property</Title>
+      <Shortcut>afxocp</Shortcut>
+      <Description>Code snippet for an Afx owned collection property and backing field</Description>
+      <Author>Afx.net</Author>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+    </Header>
+    <Snippet>
+      <Declarations>
+        <Literal>
+          <ID>type</ID>
+          <ToolTip>Item Type</ToolTip>
+          <Default>AfxObject</Default>
+        </Literal>
+        <Literal>
+          <ID>property</ID>
+          <ToolTip>Property Name</ToolTip>
+          <Default>MyCollection</Default>
+        </Literal>
+      </Declarations>
+      <Code Language="csharp">
+        <![CDATA[#region ObjectCollection<$type$> $property$
+
+public const string $property$Property = "$property$";
+Afx.ObjectModel.Collections.ObjectCollection<$type$> m$property$;
+public Afx.ObjectModel.Collections.ObjectCollection<$type$> $property$
+{
+  get { return GetObjectCollection<$type$>(ref m$property$); }
+}
+
+	#endregion
+	$end$]]>
+      </Code>
+    </Snippet>
+  </CodeSnippet>
+</CodeSnippets>

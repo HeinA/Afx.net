@@ -1,0 +1,9 @@
+﻿<#@ template debug="true" hostSpecific="true" #>
+<#@ output extension=".cs" #>
+<#@ parameter name="ns" type="System.String" #>
+<#@ parameter name="name" type="System.String" #>
+<#@ parameter name="serviceType" type="System.String" #>
+<#@ parameter name="interfaceName" type="System.String" #>
+<#@ include file=".\Business\AfxServiceImplementation.ttinclude" #>
+<#this.Template_AfxServiceInterface_Render(this.ns, this.name, serviceType, interfaceName);#>
+  

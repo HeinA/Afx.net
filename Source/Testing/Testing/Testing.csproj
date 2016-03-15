@@ -1,0 +1,87 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{E0696700-937F-4E94-9451-C6F7FA5243D9}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Testing</RootNamespace>
+    <AssemblyName>Testing</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Afx.net\Afx.Common\Afx.Common.csproj">
+      <Project>{ee358d37-3303-4ad2-8357-ce13449ad210}</Project>
+      <Name>Afx.Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Afx.net\Afx.Data.MsSql\Afx.Data.MsSql.csproj">
+      <Project>{eed4414b-e515-4edf-877f-8ea2f5d88751}</Project>
+      <Name>Afx.Data.MsSql</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Afx.net\Afx.Data\Afx.Data.csproj">
+      <Project>{3528547f-db4a-4770-8550-5f3d234d46f3}</Project>
+      <Name>Afx.Data</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Afx.net\Afx.Infrastructure.Common\Afx.Infrastructure.Common.csproj">
+      <Project>{3bed78a5-7c1a-41a7-b9b4-45bcc1d96b2f}</Project>
+      <Name>Afx.Infrastructure.Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Afx.net\Afx.ServiceModel\Afx.ServiceModel.csproj">
+      <Project>{f1f15c83-b726-4f88-b22e-1d71d6a2c181}</Project>
+      <Name>Afx.ServiceModel</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Testing.Common\Testing.Common.csproj">
+      <Project>{c233b44b-b31a-4c6c-b949-ba9cc64678fb}</Project>
+      <Name>Testing.Common</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

@@ -1,0 +1,12 @@
+﻿<#@ template debug="true" hostSpecific="true" #>
+<#@ output extension=".cs" #>
+<#@ parameter name="ns" type="System.String" #>
+<#@ parameter name="name" type="System.String" #>
+<#@ parameter name="baseClass" type="System.String" #>
+<#@ parameter name="owner" type="System.String" #>
+<#@ parameter name="hasDataContract" type="System.Boolean" #>
+<#@ parameter name="isPersistent" type="System.Boolean" #>
+<#@ parameter name="isAggregateRoot" type="System.Boolean" #>
+<#@ include file=".\Business\AfxClass.ttinclude" #>
+<#this.Template_AfxClass_Render(this.ns, this.name, this.baseClass, owner, hasDataContract, isPersistent, isAggregateRoot);#>
+  

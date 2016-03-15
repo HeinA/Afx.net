@@ -1,0 +1,31 @@
+﻿<Window x:Class="Testing.Wpf.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Testing.Wpf"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="350" Width="525" 
+        local:BindingHelper.UpdateSource="{Binding UpdateSource}">
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="Auto" />
+    </Grid.RowDefinitions>
+
+    <TextBlock Text="{Binding Invoice.ErrorMessage}" />
+    
+    <ToolBar Grid.Row="1">
+      <Button Content="Test"
+              Click="Button_Click" />
+      <Button Content="Add"
+              Click="Button_Click_1" />
+      <Button Content="Set"
+              Click="Button_Click_2" />
+    </ToolBar>
+
+    <TextBox Grid.Row="2"
+             Text="{Binding Invoice.DocumentNumber}" />
+  </Grid>
+</Window>

@@ -1,0 +1,21 @@
+﻿<#@ IntelliSenseLanguage processor="tangibleT4Editor" language="C#" #><#+ 
+void Template_AfxServiceInterface_Render(string ns, string name, string serviceType, string interfaceName)
+{			
+#>using Afx.ObjectModel;
+using Afx.ObjectModel.Collections;
+using Afx.ServiceModel.Description;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.ServiceModel;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace <#= ns #>
+{
+  [ServiceBehavior(ConcurrencyMode = ConcurrencyMode.Multiple)]
+  public class <#= name #> <#=string.IsNullOrWhiteSpace(serviceType) ? string.Empty : string.Format(": {0} , ", serviceType) #><#= interfaceName #>
+  {
+  }
+}
+<#+}#>

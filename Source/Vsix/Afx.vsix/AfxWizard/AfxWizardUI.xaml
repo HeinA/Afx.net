@@ -1,0 +1,438 @@
+﻿<Window x:Class="Afx.vsix.AfxWizard.AfxWizardUI"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:local="clr-namespace:Afx.vsix.AfxWizard"
+        xmlns:ext="clr-namespace:Afx.vsix.Extensions"
+        xmlns:items="clr-namespace:Afx.vsix.AfxWizard.Items"
+        mc:Ignorable="d"
+        Title="Afx Wizard"
+        Height="600"
+        Width="800"
+        WindowStartupLocation="CenterOwner"
+        d:DesignHeight="600"
+        d:DesignWidth="800"
+        ResizeMode="CanResizeWithGrip"
+        ext:WindowExtensions.DialogResult="{Binding DialogResult}"
+        ext:WindowExtensions.HasMaximizeButton="False"
+        ext:WindowExtensions.HasMinimizeButton="False">
+
+  <Window.Resources>
+    <!-- Region Globals -->
+    <Style TargetType="{x:Type GridSplitter}">
+      <Setter Property="VerticalAlignment"
+              Value="Stretch" />
+      <Setter Property="HorizontalAlignment"
+              Value="Center" />
+      <Setter Property="Width"
+              Value="8" />
+      <Setter Property="Focusable"
+              Value="False" />
+    </Style>
+
+    <local:StringToVisibilityConverter x:Key="StringToVisibilityConverter" />
+    <local:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+
+    <!-- EndRegion -->
+
+    <!-- region Commands -->
+
+    <!-- region CreateBusinessClass -->
+
+    <DataTemplate DataType="{x:Type items:CreateBusinessClass}">
+      <Grid Grid.Column="2">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="150" />
+          <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <TextBlock Text="Class Name"
+                   Margin="3"
+                   TextAlignment="Right"
+                   VerticalAlignment="Center"
+                   Grid.Row="0"
+                   Grid.Column="0" />
+        <TextBox Text="{Binding ClassName, UpdateSourceTrigger=PropertyChanged}"
+                 Margin="3"
+                 Grid.Row="0"
+                 Grid.Column="1" />
+
+        <TextBlock Text="Base Type"
+                   Margin="3"
+                   TextAlignment="Right"
+                   VerticalAlignment="Center"
+                   Grid.Row="1"
+                   Grid.Column="0" />
+        <ComboBox ItemsSource="{Binding BaseTypes}"
+                  SelectedItem="{Binding BaseClassName}"
+                  Margin="3"
+                  Grid.Row="1"
+                  Grid.Column="1" />
+
+        <TextBlock Text="Owner Type"
+                   Margin="3"
+                   TextAlignment="Right"
+                   VerticalAlignment="Center"
+                   Grid.Row="2"
+                   Grid.Column="0" />
+        <ComboBox ItemsSource="{Binding BaseTypes}"
+                  SelectedItem="{Binding OwnerName}"
+                  Margin="3"
+                  Grid.Row="2"
+                  Grid.Column="1" />
+
+        <CheckBox Content="Is Persistent?"
+                  Grid.Column="1"
+                  Grid.Row="3"
+                  Margin="3"
+                  Visibility="{Binding IsPersistentVisible, Converter={StaticResource BoolToVisibilityConverter}}"
+                  IsChecked="{Binding IsPersistent}" />
+
+        <CheckBox Content="Is Aggregate Root?"
+                  Grid.Column="1"
+                  Grid.Row="4"
+                  Margin="3"
+                  Visibility="{Binding IsAggregateRootVisible, Converter={StaticResource BoolToVisibilityConverter}}"
+                  IsChecked="{Binding IsAggregateRoot}" />
+
+        <TextBlock Text="Service Interface"
+                   Margin="3"
+                   TextAlignment="Right"
+                   VerticalAlignment="Center"
+                   Grid.Row="5"
+                   Visibility="{Binding IsServiceInterfaceVisible, Converter={StaticResource BoolToVisibilityConverter}}"
+                   Grid.Column="0" />
+        <ComboBox ItemsSource="{Binding Context.LocalServiceInterfaces}"
+                  SelectedItem="{Binding SelectedServiceInterface}"
+                  Visibility="{Binding IsServiceInterfaceVisible, Converter={StaticResource BoolToVisibilityConverter}}"
+                  Margin="3"
+                  Grid.Row="5"
+                  Grid.Column="1" />
+
+        <TextBlock Text="Service Implementation"
+                   Margin="3"
+                   TextAlignment="Right"
+                   VerticalAlignment="Center"
+                   Visibility="{Binding IsServiceInterfaceDetailsVisible, Converter={StaticResource BoolToVisibilityConverter}}"
+                   Grid.Row="6"
+                   Grid.Column="0" />
+        <TextBox Text="{Binding ServiceImplementationClassName, Mode=OneWay}"
+                 IsReadOnly="True"
+                 Visibility="{Binding IsServiceInterfaceDetailsVisible, Converter={StaticResource BoolToVisibilityConverter}}"
+                 Margin="3"
+                 Grid.Row="6"
+                 Grid.Column="1" />
+
+        <CheckBox Content="Is Collection?"
+                  Grid.Column="1"
+                  Grid.Row="7"
+                  Margin="3"
+                  Visibility="{Binding IsServiceInterfaceDetailsVisible, Converter={StaticResource BoolToVisibilityConverter}}"
+                  IsChecked="{Binding IsCollection}" />
+
+        <TextBlock Text="Method Stub"
+                   Margin="3"
+                   TextAlignment="Right"
+                   VerticalAlignment="Center"
+                   Visibility="{Binding IsServiceInterfaceDetailsVisible, Converter={StaticResource BoolToVisibilityConverter}}"
+                   Grid.Row="8"
+                   Grid.Column="0" />
+        <TextBox Text="{Binding MethodStub, UpdateSourceTrigger=PropertyChanged}"
+                 Visibility="{Binding IsServiceInterfaceDetailsVisible, Converter={StaticResource BoolToVisibilityConverter}}"
+                 Margin="3"
+                 Grid.Row="8"
+                 Grid.Column="1" />
+
+        <TextBlock Text="Load Method"
+                   Margin="3"
+                   TextAlignment="Right"
+                   VerticalAlignment="Center"
+                   Visibility="{Binding IsServiceInterfaceDetailsVisible, Converter={StaticResource BoolToVisibilityConverter}}"
+                   Grid.Row="9"
+                   Grid.Column="0" />
+        <TextBox Text="{Binding LoadMethodName, Mode=OneWay}"
+                 IsReadOnly="True"
+                 Visibility="{Binding IsServiceInterfaceDetailsVisible, Converter={StaticResource BoolToVisibilityConverter}}"
+                 Margin="3"
+                 Grid.Row="9"
+                 Grid.Column="1" />
+
+        <TextBlock Text="Save Method"
+                   Margin="3"
+                   TextAlignment="Right"
+                   VerticalAlignment="Center"
+                   Visibility="{Binding IsServiceInterfaceDetailsVisible, Converter={StaticResource BoolToVisibilityConverter}}"
+                   Grid.Row="10"
+                   Grid.Column="0" />
+        <TextBox Text="{Binding SaveMethodName, Mode=OneWay}"
+                 IsReadOnly="True"
+                 Visibility="{Binding IsServiceInterfaceDetailsVisible, Converter={StaticResource BoolToVisibilityConverter}}"
+                 Margin="3"
+                 Grid.Row="10"
+                 Grid.Column="1" />
+      </Grid>
+    </DataTemplate>
+
+    <!-- endregion -->
+
+    <!-- region CreateAssociativeClass -->
+
+    <DataTemplate DataType="{x:Type items:CreateAssociativeClass}">
+      <Grid Grid.Column="2">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="150" />
+          <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <TextBlock Text="Class Name"
+                   Margin="3"
+                   TextAlignment="Right"
+                   VerticalAlignment="Center"
+                   Grid.Row="0"
+                   Grid.Column="0" />
+        <TextBox Text="{Binding ClassName, UpdateSourceTrigger=PropertyChanged}"
+                 Margin="3"
+                 Grid.Row="0"
+                 Grid.Column="1" />
+
+        <TextBlock Text="Base Type"
+                   Margin="3"
+                   TextAlignment="Right"
+                   VerticalAlignment="Center"
+                   Grid.Row="1"
+                   Grid.Column="0" />
+        <ComboBox ItemsSource="{Binding BaseTypes}"
+                  SelectedItem="{Binding BaseClassName}"
+                  Margin="3"
+                  Grid.Row="1"
+                  Grid.Column="1" />
+
+        <TextBlock Text="Owner Type"
+                   Visibility="{Binding IsAssociativeDetailsVisible, Converter={StaticResource BoolToVisibilityConverter}}"
+                   Margin="3"
+                   TextAlignment="Right"
+                   VerticalAlignment="Center"
+                   Grid.Row="2"
+                   Grid.Column="0" />
+        <ComboBox ItemsSource="{Binding TemplateTypes}"
+                  Visibility="{Binding IsAssociativeDetailsVisible, Converter={StaticResource BoolToVisibilityConverter}}"
+                  SelectedItem="{Binding OwnerName}"
+                  Margin="3"
+                  Grid.Row="2"
+                  Grid.Column="1" />
+
+        <TextBlock Text="Reference Type"
+                   Visibility="{Binding IsAssociativeDetailsVisible, Converter={StaticResource BoolToVisibilityConverter}}"
+                   Margin="3"
+                   TextAlignment="Right"
+                   VerticalAlignment="Center"
+                   Grid.Row="3"
+                   Grid.Column="0" />
+        <ComboBox ItemsSource="{Binding TemplateTypes}"
+                  Visibility="{Binding IsAssociativeDetailsVisible, Converter={StaticResource BoolToVisibilityConverter}}"
+                  SelectedItem="{Binding ReferenceName}"
+                  Margin="3"
+                  Grid.Row="3"
+                  Grid.Column="1" />
+
+        <CheckBox Content="Is Persistent?"
+                  Grid.Column="1"
+                  Grid.Row="4"
+                  Margin="3"
+                  Visibility="{Binding IsPersistentVisible, Converter={StaticResource BoolToVisibilityConverter}}"
+                  IsChecked="{Binding IsPersistent}" />
+      </Grid>
+    </DataTemplate>
+
+    <!-- endregion -->
+    
+    <!-- region CreateServiceInterface -->
+
+    <DataTemplate DataType="{x:Type items:CreateServiceInterface}">
+      <Grid Grid.Column="2">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="150" />
+          <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <TextBlock Text="Service Interface Name"
+                   Margin="3"
+                   TextAlignment="Right"
+                   VerticalAlignment="Center"
+                   Grid.Row="0"
+                   Grid.Column="0" />
+        <TextBox Text="{Binding ClassName, UpdateSourceTrigger=PropertyChanged}"
+                 Margin="3"
+                 Grid.Row="0"
+                 Grid.Column="1" />
+
+        <TextBlock Text="Service Type"
+                   Margin="3"
+                   TextAlignment="Right"
+                   VerticalAlignment="Center"
+                   Grid.Row="1"
+                   Grid.Column="0" />
+        <ComboBox ItemsSource="{Binding ServiceTypes}"
+                  SelectedItem="{Binding SelectedServiceType}"
+                  Margin="3"
+                  Grid.Row="1"
+                  Grid.Column="1" />
+
+        <CheckBox Content="Message Compression?"
+                  Grid.Column="1"
+                  Grid.Row="2"
+                  Margin="3"
+                  Visibility="{Binding IsMessageCompressionVisible, Converter={StaticResource BoolToVisibilityConverter}}"
+                  IsChecked="{Binding UseMessageCompression}" />
+      </Grid>
+    </DataTemplate>
+
+    <!-- endregion -->
+
+    <!-- region CreateServiceImplementation -->
+
+    <DataTemplate DataType="{x:Type items:CreateServiceImplementation}">
+      <Grid Grid.Column="2">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="150" />
+          <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <TextBlock Text="Service Class Name"
+                   Margin="3"
+                   TextAlignment="Right"
+                   VerticalAlignment="Center"
+                   Grid.Row="0"
+                   Grid.Column="0" />
+        <TextBox Text="{Binding ClassName, UpdateSourceTrigger=PropertyChanged}"
+                 Margin="3"
+                 Grid.Row="0"
+                 Grid.Column="1" />
+
+        <TextBlock Text="Service Interface"
+                   Margin="3"
+                   TextAlignment="Right"
+                   VerticalAlignment="Center"
+                   Grid.Row="1"
+                   Grid.Column="0" />
+        <ComboBox ItemsSource="{Binding ImplementableInterfaces}"
+                  SelectedItem="{Binding SelectedInterface}"
+                  Margin="3"
+                  Grid.Row="1"
+                  Grid.Column="1" />
+      </Grid>
+    </DataTemplate>
+
+    <!-- endregion -->
+
+    <!-- endregion -->
+  </Window.Resources>
+
+  <DockPanel Margin="3">
+    <StackPanel DockPanel.Dock="Bottom"
+                Orientation="Vertical">
+      <Separator />
+      <StackPanel HorizontalAlignment="Right"
+                  Margin="0,0,15,0"
+                  Orientation="Horizontal">
+        <Button Margin="3"
+                Width="70"
+                Command="{Binding OkCommand}"
+                IsDefault="True">OK</Button>
+        <Button Margin="3"
+                Width="70"
+                Command="{Binding CancelCommand}"
+                IsCancel="True">Cancel</Button>
+      </StackPanel>
+    </StackPanel>
+
+    <Grid>
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="200" />
+        <ColumnDefinition Width="16" />
+        <ColumnDefinition Width="*" />
+      </Grid.ColumnDefinitions>
+
+      <ListBox BorderThickness="0"
+               Margin="3"
+               ItemsSource="{Binding Model.Commands}"
+               SelectedItem="{Binding SelectedCommand}">
+
+        <ListBox.ItemTemplate>
+          <DataTemplate>
+            <TextBlock Text="{Binding CommandName}"
+                       Margin="3" />
+          </DataTemplate>
+        </ListBox.ItemTemplate>
+      </ListBox>
+
+      <GridSplitter Grid.Column="1" />
+
+      <DockPanel Grid.Column="2">
+        <StackPanel Orientation="Vertical"
+                    Visibility="{Binding SelectedCommand.ErrorMessage, Converter={StaticResource StringToVisibilityConverter}}"
+                    DockPanel.Dock="Top">
+          <TextBlock Text="{Binding SelectedCommand.ErrorMessage}"
+                     TextAlignment="Center"
+                     VerticalAlignment="Center"
+                     FontWeight="Bold"
+                     Padding="6"
+                     Background="LightPink" />
+          <Separator Background="Red"
+                     SnapsToDevicePixels="True"
+                     Margin="0,0,0,3" />
+        </StackPanel>
+        <ContentControl Margin="3"
+                        Content="{Binding SelectedCommand}">
+        </ContentControl>
+      </DockPanel>
+    </Grid>
+  </DockPanel>
+</Window>

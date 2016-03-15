@@ -1,0 +1,12 @@
+﻿<#@ template debug="true" hostSpecific="true" #>
+<#@ output extension=".cs" #>
+<#@ parameter name="ns" type="System.String" #>
+<#@ parameter name="name" type="System.String" #>
+<#@ parameter name="baseClass" type="System.String" #>
+<#@ parameter name="owner" type="System.String" #>
+<#@ parameter name="reference" type="System.String" #>
+<#@ parameter name="hasDataContract" type="System.Boolean" #>
+<#@ parameter name="isPersistent" type="System.Boolean" #>
+<#@ include file=".\Business\AfxAssociative.ttinclude" #>
+<#this.Template_AfxAssociative_Render(this.ns, this.name, this.baseClass, owner, reference, hasDataContract, isPersistent);#>
+  
