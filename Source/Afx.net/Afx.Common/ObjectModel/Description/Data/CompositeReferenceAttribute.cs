@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Afx.ObjectModel.Description
+namespace Afx.ObjectModel.Description.Data
 {
   [AttributeUsage(AttributeTargets.Class)]
   public sealed class CompositeReferenceAttribute : Attribute

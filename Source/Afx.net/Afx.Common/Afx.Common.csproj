@@ -69,7 +69,7 @@
     <Compile Include="ObjectModel\Collections\IObjectCollection.cs" />
     <Compile Include="ObjectModel\Collections\ObjectCollection.cs" />
     <Compile Include="ObjectModel\Description\AfxBaseTypeAttribute.cs" />
-    <Compile Include="ObjectModel\Description\CompositeReferenceAttribute.cs" />
+    <Compile Include="ObjectModel\Description\Data\CompositeReferenceAttribute.cs" />
     <Compile Include="ObjectModel\Description\Data\BinaryStorageAttribute.cs" />
     <Compile Include="ObjectModel\Description\Data\PersistentObjectAttribute.cs" />
     <Compile Include="ObjectModel\Description\Data\PersistentPropertyAttribute.cs" />

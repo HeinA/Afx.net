@@ -24,5 +24,19 @@ namespace Afx.Data.Configuration
       get { return (string)this["name"]; }
       set { this["name"] = value; }
     }
+
+    [ConfigurationProperty("connectionString", IsRequired = true)]
+    public string ConnectionString
+    {
+      get { return (string)this["connectionString"]; }
+      set { this["connectionString"] = value; }
+    }
+
+    [ConfigurationProperty("validateSchema", IsRequired = false, DefaultValue = false)]
+    public bool ValidateSchema
+    {
+      get { return (bool)this["validateSchema"]; }
+      set { this["validateSchema"] = value; }
+    }
   }
 }

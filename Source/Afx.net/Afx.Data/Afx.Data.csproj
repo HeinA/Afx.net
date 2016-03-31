@@ -47,6 +47,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CollectionProperty.cs" />
     <Compile Include="ComplexProperty.cs" />
     <Compile Include="Configuration\Repository.cs" />
     <Compile Include="Configuration\RepositoryCollection.cs" />

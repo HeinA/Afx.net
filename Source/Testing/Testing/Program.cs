@@ -20,8 +20,10 @@ namespace Testing
   {
     static void Main(string[] args)
     {
-      ObjectRepository<Role> or = ObjectRepository.GetRepository<Role>();
-      or.SaveObject(new Role(), "Default");
+      ObjectRepository<User> or = ObjectRepository.GetRepository<User>();
+      User u = or.LoadObject(new Guid("d30c3a34-a65a-4748-a8a8-958033af3077"));
+      UserRole ur = u.Roles[u.Roles[0]];
+      or.SaveObject(new User(), "Default");
 
       Console.WriteLine("...");
       Console.ReadKey();

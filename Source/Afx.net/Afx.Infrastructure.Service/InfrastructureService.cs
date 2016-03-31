@@ -36,7 +36,6 @@ namespace Afx.Infrastructure.Service
       }
     }
 
-
     #endregion
   }
 }

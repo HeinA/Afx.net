@@ -1,5 +1,6 @@
 using Afx.ObjectModel;
-using Afx.ObjectModel.Description.Data; 
+using Afx.ObjectModel.Description;
+using Afx.ObjectModel.Description.Data;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +12,7 @@ namespace Afx.Infrastructure.Security
 {
 	[DataContract(Namespace = Constants.WcfNamespace, IsReference = true)]
 	[PersistentObject]  
+  [CompositeReference]
   public class UserRole : AssociativeObject<Afx.Infrastructure.Security.User, Afx.Infrastructure.Security.Role>
   {
   }

@@ -9,13 +9,13 @@ namespace Afx.ObjectModel.Description.Data
   [AttributeUsage(AttributeTargets.Class, Inherited = false)]
   public sealed class PersistentObjectAttribute : Attribute
   {
-    #region string Catalogue
+    #region string Catalog
 
-    string mCatalogue = null;
-    public string Catalogue
+    string mCatalog = null;
+    public string Catalog
     {
-      get { return mCatalogue; }
-      set { mCatalogue = value; }
+      get { return mCatalog; }
+      set { mCatalog = value; }
     }
 
     #endregion

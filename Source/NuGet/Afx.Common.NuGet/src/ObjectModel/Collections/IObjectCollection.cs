@@ -12,6 +12,7 @@ namespace Afx.ObjectModel.Collections
   public interface IObjectCollection : ICollection, IEditNotifier, INotifyCollectionChanged
   {
     Type ItemType { get; }
-    //event EventHandler ItemErrorsChanged;
+
+    void Add(IAfxObject item);
   }
 }

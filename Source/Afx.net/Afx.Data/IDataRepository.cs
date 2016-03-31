@@ -1,4 +1,5 @@
-﻿using Afx.ObjectModel;
+﻿using Afx.Data.Configuration;
+using Afx.ObjectModel;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,6 +10,8 @@ namespace Afx.Data
 {
   public interface IDataRepository
   {
+    void Initialize(Repository repositoryConfiguration);
+    AfxObject LoadObject(Guid id, ObjectRepository objectRepository);
     AfxObject SaveObject(AfxObject obj, ObjectRepository objectRepository);
   }
 }

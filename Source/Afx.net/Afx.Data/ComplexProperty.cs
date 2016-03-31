@@ -18,5 +18,6 @@ namespace Afx.Data
       : base(objectRepository, propertyInfo, name)
     {
     }
+
   }
 }

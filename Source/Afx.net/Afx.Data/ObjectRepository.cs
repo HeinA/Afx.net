@@ -1,5 +1,6 @@
 ﻿using Afx.Data.Configuration;
 using Afx.ObjectModel;
+using Afx.ObjectModel.Collections;
 using Afx.ObjectModel.Description;
 using Afx.ObjectModel.Description.Data;
 using Afx.ObjectModel.Description.Metadata;
@@ -45,12 +46,14 @@ namespace Afx.Data
       var sa = SourceType.Assembly.GetCustomAttribute<SchemaAttribute>();
       Schema = sa == null ? null : sa.Name;
 
-      Catalogue = poa.Catalogue ?? type.Name;
+      Catalog = poa.Catalog ?? type.Name;
       IsReadOnly = poa.IsReadOnly;
 
       foreach (Type t in SourceMetadata.Subtypes)
       {
-        mSubRepositories.Add(GetRepository(t));
+        var or1 = GetRepository(t);
+        or1.BaseRepository = this;
+        mSubRepositories.Add(or1);
       }
 
       PropertyInfo piId = SourceType.GetProperty(AfxObject.IdProperty);
@@ -85,18 +88,21 @@ namespace Afx.Data
     void AddIdProperty(PropertyInfo pi)
     {
       if (pi.PropertyType.IsSubclassOf(typeof(AfxObject))) throw new InvalidOperationException(); //TODO: message
+      else if (typeof(IObjectCollection).IsAssignableFrom(pi.PropertyType)) throw new InvalidOperationException(); //TODO: message
       else mProperties.Add(new SimpleProperty(this, pi, true));
     }
 
     void AddProperty(PropertyInfo pi)
     {
       if (pi.PropertyType.IsSubclassOf(typeof(AfxObject))) mProperties.Add(new ComplexProperty(this, pi));
+      else if (typeof(IObjectCollection).IsAssignableFrom(pi.PropertyType)) mProperties.Add(new CollectionProperty(this, pi));
       else mProperties.Add(new SimpleProperty(this, pi));
     }
 
     void AddProperty(PropertyInfo pi, string name)
     {
       if (pi.PropertyType.IsSubclassOf(typeof(AfxObject))) mProperties.Add(new ComplexProperty(this, pi, name));
+      else if (typeof(IObjectCollection).IsAssignableFrom(pi.PropertyType)) throw new InvalidOperationException(); //TODO: message
       else throw new InvalidOperationException(); //TODO: message
     }
 
@@ -136,6 +142,26 @@ namespace Afx.Data
 
     #endregion
 
+    #region IDataRepository GetDataRepository(...)
+
+    IDataRepository GetDataRepository(string repositoryName)
+    {
+      if (!mDataRepositoryDictionary.ContainsKey(repositoryName))
+      {
+        Repository rc = RepositoryConfiguration.Default.Repositories.OfType<Repository>().Where(r => r.Name == repositoryName).FirstOrDefault();
+        if (rc == null) throw new InvalidOperationException(); //TODO: message
+        IDataRepository idr = (IDataRepository)Activator.CreateInstance(rc.RepositoryType);
+        idr.Initialize(rc);
+        mDataRepositoryDictionary.Add(repositoryName, idr);
+      }
+
+      return mDataRepositoryDictionary[repositoryName];
+    }
+
+    #endregion
+
+    public ObjectRepository BaseRepository { get; private set; }
+
     #region Type SourceType
 
     Type mSourceType;
@@ -169,13 +195,13 @@ namespace Afx.Data
 
     #endregion
 
-    #region string Catalogue
+    #region string Catalog
 
-    string mCatalogue;
-    public string Catalogue
+    string mCatalog;
+    public string Catalog
     {
-      get { return mCatalogue; }
-      private set { mCatalogue = value; }
+      get { return mCatalog; }
+      private set { mCatalog = value; }
     }
 
     #endregion
@@ -234,30 +260,63 @@ namespace Afx.Data
 
     #endregion
 
+    public IEnumerable<ObjectRepository> ConcreteRepositories
+    {
+      get
+      {
+        if (!SourceMetadata.IsAbstract) yield return this;
+        foreach (var or in this.SubRepositories)
+        {
+          foreach (var or1 in or.ConcreteRepositories)
+          {
+            yield return or1;
+          }
+        }
+      }
+    }
+
     #region string ToString(...)
 
     public override string ToString()
     {
-      if (string.IsNullOrWhiteSpace(Schema)) return string.Format("[{0}]", Catalogue);
-      return string.Format("[{0}].[{1}]", Schema, Catalogue);
+      if (string.IsNullOrWhiteSpace(Schema)) return string.Format("[{0}]", Catalog);
+      return string.Format("[{0}].[{1}]", Schema, Catalog);
     }
 
     #endregion
 
-    internal AfxObject SaveObject(AfxObject obj, string repositoryName)
+
+    #region AfxObject LoadObject(...)
+
+    public AfxObject LoadObject(Guid id)
     {
-      if (IsReadOnly) throw new InvalidOperationException(); //TODO: message
-
-      if (!mDataRepositoryDictionary.ContainsKey(repositoryName))
-      {
-        Repository dr = RepositoryConfiguration.Default.Repositories.OfType<Repository>().Where(r => r.Name == repositoryName).FirstOrDefault();
-        if (dr == null) throw new InvalidOperationException(); //TODO: message
-        IDataRepository idr = (IDataRepository)Activator.CreateInstance(dr.RepositoryType, repositoryName);
-        mDataRepositoryDictionary.Add(repositoryName, idr);
-      }
-
-      return mDataRepositoryDictionary[repositoryName].SaveObject(obj, GetRepository(obj.GetType()));
+      return this.LoadObject(id, RepositoryScope.ConnectionName);
     }
+
+    public AfxObject LoadObject(Guid id, string repositoryName)
+    {
+      IDataRepository idr = GetDataRepository(repositoryName);
+      return idr.LoadObject(id, this);
+    }
+
+    #endregion
+
+    #region AfxObject SaveObject(...)
+
+    public AfxObject SaveObject(AfxObject obj)
+    {
+      return this.SaveObject(obj, RepositoryScope.ConnectionName);
+    }
+
+    public AfxObject SaveObject(AfxObject obj, string repositoryName)
+    {
+      ObjectRepository or = GetRepository(obj.GetType()); //Ensure ObjectRepository is the actual type, not a base type.
+      if (or.IsReadOnly) throw new InvalidOperationException(); //TODO: message
+      IDataRepository idr = GetDataRepository(repositoryName);
+      return idr.SaveObject(obj, or); 
+    }
+
+    #endregion
 
     static Dictionary<Type, ObjectRepository> mObjectRepositoryDictionary = new Dictionary<Type, ObjectRepository>();
     static Dictionary<string, IDataRepository> mDataRepositoryDictionary = new Dictionary<string, IDataRepository>();
@@ -266,10 +325,30 @@ namespace Afx.Data
   public class ObjectRepository<T> : ObjectRepository
     where T : AfxObject
   {
+    #region Constructors
+
     internal ObjectRepository()
       : base(typeof(T))
     {
     }
+
+    #endregion
+
+    #region T LoadObject(...)
+
+    public new T LoadObject(Guid id, string repositoryName)
+    {
+      return (T)base.LoadObject(id, repositoryName);
+    }
+
+    public new T LoadObject(Guid id)
+    {
+      return (T)base.LoadObject(id, RepositoryScope.ConnectionName);
+    }
+
+    #endregion
+
+    #region T SaveObject(...)
 
     public T SaveObject(T obj, string repositoryName)
     {
@@ -280,5 +359,7 @@ namespace Afx.Data
     {
       return (T)base.SaveObject(obj, RepositoryScope.ConnectionName);
     }
+
+    #endregion
   }
 }

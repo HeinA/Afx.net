@@ -261,6 +261,13 @@ namespace Afx.ObjectModel
 
     #region Owned Collection Generators
 
+    /// <summary>
+    /// Creates an ObjectCollection owned by the containing object.
+    /// </summary>
+    /// <typeparam name="TItem"></typeparam>
+    /// <param name="field"></param>
+    /// <param name="propertyName"></param>
+    /// <returns></returns>
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1045:DoNotPassTypesByReference", MessageId = "0#")]
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
     protected ObjectCollection<TItem> GetObjectCollection<TItem>(ref ObjectCollection<TItem> field, [CallerMemberName] string propertyName = null)
@@ -269,6 +276,14 @@ namespace Afx.ObjectModel
       return field ?? (field = new ObjectCollection<TItem>(this, propertyName));
     }
 
+    /// <summary>
+    /// Creates an AssociativeCollection owned by the containing object.
+    /// </summary>
+    /// <typeparam name="TItem"></typeparam>
+    /// <typeparam name="TAssociative"></typeparam>
+    /// <param name="field"></param>
+    /// <param name="propertyName"></param>
+    /// <returns></returns>
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1045:DoNotPassTypesByReference", MessageId = "0#")]
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
     protected AssociativeCollection<TItem, TAssociative> GetAssociativeCollection<TItem, TAssociative>(ref AssociativeCollection<TItem, TAssociative> field, [CallerMemberName] string propertyName = null)

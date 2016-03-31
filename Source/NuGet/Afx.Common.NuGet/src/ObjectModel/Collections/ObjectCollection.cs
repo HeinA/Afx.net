@@ -181,6 +181,11 @@ namespace Afx.ObjectModel.Collections
       get { return typeof(TItem); }
     }
 
+    void IObjectCollection.Add(IAfxObject item)
+    {
+      this.Add((TItem)item);
+    }
+
     #endregion
   }
 }

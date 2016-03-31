@@ -3,6 +3,7 @@ using Afx.Data.Configuration;
 using Afx.Data.MsSql.Configuration;
 using Afx.Data.MsSql.SchemaValidation;
 using Afx.ObjectModel;
+using Afx.ObjectModel.Collections;
 using Afx.ObjectModel.Description.Metadata;
 using System;
 using System.Collections;
@@ -11,6 +12,7 @@ using System.Collections.ObjectModel;
 using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -21,22 +23,232 @@ namespace Afx.Data.MsSql
 {
   public class MsSqlRepository : IDataRepository
   {
-    public MsSqlRepository(string repositoryName)
+    #region string RepositoryName
+
+    string mRepositoryName;
+    public string RepositoryName
     {
-      RepositoryName = repositoryName;
-      ConnectionString = ConfigurationManager.ConnectionStrings[RepositoryName].ConnectionString;
-      
+      get { return mRepositoryName; }
+      private set { mRepositoryName = value; }
+    }
+
+    #endregion
+
+    #region string ConnectionString
+
+    string mConnectionString;
+    public string ConnectionString
+    {
+      get { return mConnectionString; }
+      private set { mConnectionString = value; }
+    }
+
+    #endregion
+
+    #region string DatabaseName
+
+    string mDatabaseName;
+    public string DatabaseName
+    {
+      get { return mDatabaseName; }
+      private set { mDatabaseName = value; }
+    }
+
+    #endregion
+
+    #region string MasterConnectionString
+
+    string mMasterConnectionString;
+    public string MasterConnectionString
+    {
+      get { return mMasterConnectionString; }
+      private set { mMasterConnectionString = value; }
+    }
+
+    #endregion
+
+
+    #region void Initialize(...)
+
+    public void Initialize(Repository repositoryConfiguration)
+    {
+      RepositoryName = repositoryConfiguration.Name;
+      ConnectionString = repositoryConfiguration.ConnectionString;
+
       SqlConnectionStringBuilder cb = new SqlConnectionStringBuilder(ConnectionString);
       DatabaseName = cb.InitialCatalog;
       cb.InitialCatalog = "master";
       MasterConnectionString = cb.ToString();
 
-      using (TransactionScope scope = new TransactionScope(TransactionScopeOption.RequiresNew))
+      if (repositoryConfiguration.ValidateSchema)
       {
-        ValidateRepository();
-        scope.Complete();
+        using (TransactionScope scope = new TransactionScope(TransactionScopeOption.RequiresNew))
+        {
+          ValidateRepository();
+          scope.Complete();
+        }
       }
     }
+
+    #endregion
+
+    #region AfxObject LoadObject(...)
+
+    public AfxObject LoadObject(Guid id, ObjectRepository objectRepository)
+    {
+      foreach (var or in objectRepository.ConcreteRepositories)
+      {
+        DataSet ds = new SqlQuery(or).QueryById(id, ConnectionString);
+        if (ds.Tables[0].Rows.Count == 1)
+        {
+          AfxObject obj = (AfxObject)Activator.CreateInstance(or.SourceType);
+          LoadObject(obj, ds.Tables[0].Rows[0], or, new LoadContext());
+          return obj;
+        }
+      }
+
+      throw new InvalidOperationException(string.Format(Properties.Resources.InvalidObject, id));
+    }
+
+    #region void LoadObject(...)
+
+    void LoadObject(AfxObject obj, DataRow dr, ObjectRepository objectRepository, LoadContext context)
+    {
+      if (objectRepository == null) return;
+
+      #region Load Base Class
+
+      LoadObject(obj, dr, objectRepository.BaseRepository, context);
+
+      #endregion
+
+      #region  Load Simple Properties
+
+      foreach (var p in objectRepository.Properties.OfType<SimpleProperty>().Where(p1 => p1.AllowRead))
+      {
+        object val = dr[p.Name];
+        if (val != DBNull.Value && val != null) p.PropertyInfo.SetValue(obj, val);
+      }
+
+      //Register the object in the Load Context after its's simple properties has loaded (id etc)
+      context.RegisterObject(obj);
+
+      #endregion
+
+      #region  Load Collections
+
+      foreach (var p in objectRepository.Properties.OfType<CollectionProperty>())
+      {
+        object col = p.PropertyInfo.GetValue(obj);
+        IAssociativeCollection acol = (IAssociativeCollection)col;
+        if (acol != null)
+        {
+          LoadAssociativeObjects(obj, acol, context);
+        }
+        else
+        {
+          IObjectCollection ocol = (IObjectCollection)col;
+          LoadOwnedObjects(obj, ocol, context);
+        }
+      }
+
+      #endregion
+
+      #region  Load Complex Properties
+
+      foreach (var p in objectRepository.Properties.OfType<ComplexProperty>().Where(p1 => p1.AllowRead))
+      {
+        if (p.PropertyInfo.Name == "Owner") continue;
+
+        object referenceId = dr[p.Name];
+        if (referenceId != null && referenceId != DBNull.Value)
+        {
+          Guid referenceGuid = (Guid)referenceId;
+          AfxObject referenceObject = null;
+
+          // Set a reference to the object if it has been loaded earlier during this Load.
+          if (context.IsRegistered(referenceGuid))
+          {
+            referenceObject = context.GetObject(referenceGuid);
+          }
+
+          // Otherwise set a reference to the object from the Memory Cache.
+          if (referenceObject == null)
+          {
+            //TODO: Load from Memory Cache
+          }
+
+          // Otherwise load the object from the Database.
+          if (referenceObject == null)
+          {
+            ObjectRepository or = ObjectRepository.GetRepository(p.PropertyType);
+            referenceObject = LoadObject(referenceGuid, or);
+          }
+
+          if (referenceObject != null)
+          {
+            p.PropertyInfo.SetValue(obj, referenceObject);
+          }
+        }
+      }
+
+      #endregion
+    }
+
+    #endregion
+
+    #region void LoadAssociativeObjects(...)
+
+    void LoadAssociativeObjects(AfxObject obj, IAssociativeCollection acol, LoadContext context)
+    {
+      ObjectRepository orAO = ObjectRepository.GetRepository(acol.AssociativeType);
+
+      foreach (var or in orAO.ConcreteRepositories)
+      {
+        DataSet ds = new SqlQuery(or).QueryByOwner(obj.Id, ConnectionString);
+        foreach (DataRow dr in ds.Tables[0].Rows)
+        {
+          AfxObject obj1 = (AfxObject)Activator.CreateInstance(or.SourceType);
+          LoadObject(obj1, dr, or, context);
+          IAssociativeObject aobj = (IAssociativeObject)obj1;
+          acol.Add(aobj.Reference, aobj);
+        }
+      }
+    }
+
+    #endregion
+
+    #region void LoadOwnedObjects(...)
+
+    void LoadOwnedObjects(AfxObject obj, IObjectCollection col, LoadContext context)
+    {
+      ObjectRepository orCol = ObjectRepository.GetRepository(col.ItemType);
+
+      foreach (var or in orCol.ConcreteRepositories)
+      {
+        DataSet ds = new SqlQuery(or).QueryByOwner(obj.Id, ConnectionString);
+        foreach (DataRow dr in ds.Tables[0].Rows)
+        {
+          AfxObject obj1 = (AfxObject)Activator.CreateInstance(or.SourceType);
+          LoadObject(obj1, dr, or, context);
+          col.Add(obj1);
+        }
+      }
+    }
+
+    #endregion
+
+    #endregion
+
+    #region AfxObject SaveObject(...)
+
+    public AfxObject SaveObject(AfxObject obj, ObjectRepository objectRepository)
+    {
+      return null;
+    }
+
+    #endregion
+
 
     #region Database Schema Validation
 
@@ -233,7 +445,7 @@ namespace Afx.Data.MsSql
 
           if (!or.IsReadOnly)
           {
-            string sqlTableExists = string.Format("SELECT COUNT(1) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '{0}' AND  TABLE_NAME = '{1}'", GetSchema(or), or.Catalogue);
+            string sqlTableExists = string.Format("SELECT COUNT(1) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '{0}' AND  TABLE_NAME = '{1}'", GetSchema(or), or.Catalog);
             using (SqlCommand cmd = new SqlCommand(sqlTableExists, con))
             {
               int i = (int)cmd.ExecuteScalar();
@@ -266,8 +478,8 @@ namespace Afx.Data.MsSql
         string sql = null;
         using (StringWriter sw = new StringWriter())
         {
-          //sw.Write("CREATE TABLE [{0}].[{1}] ([ix] INT NOT NULL IDENTITY(1,1) PRIMARY KEY, [id] UNIQUEIDENTIFIER ROWGUIDCOL NOT NULL UNIQUE", GetSchema(or), or.Catalogue);
-          sw.Write("CREATE TABLE [{0}].[{1}] ([id] UNIQUEIDENTIFIER ROWGUIDCOL NOT NULL, [ix] INT NOT NULL IDENTITY(1,1)", GetSchema(or), or.Catalogue);
+          //sw.Write("CREATE TABLE [{0}].[{1}] ([ix] INT NOT NULL IDENTITY(1,1) PRIMARY KEY, [id] UNIQUEIDENTIFIER ROWGUIDCOL NOT NULL UNIQUE", GetSchema(or), or.Catalog);
+          sw.Write("CREATE TABLE [{0}].[{1}] ([id] UNIQUEIDENTIFIER ROWGUIDCOL NOT NULL, [ix] INT NOT NULL IDENTITY(1,1)", GetSchema(or), or.Catalog);
           foreach (var pp in or.Properties)
           {
             SimpleProperty sp = pp as SimpleProperty;
@@ -290,19 +502,19 @@ namespace Afx.Data.MsSql
           cmd.ExecuteNonQuery();
         }
 
-        sql = string.Format("ALTER TABLE [{0}].[{1}] ADD CONSTRAINT PK_{2} PRIMARY KEY NONCLUSTERED (id)", GetSchema(or), or.Catalogue, or.Catalogue.Replace(" ", "_"));
+        sql = string.Format("ALTER TABLE [{0}].[{1}] ADD CONSTRAINT PK_{2} PRIMARY KEY NONCLUSTERED (id)", GetSchema(or), or.Catalog, or.Catalog.Replace(" ", "_"));
         using (SqlCommand cmd = new SqlCommand(sql, con))
         {
           cmd.ExecuteNonQuery();
         }
 
-        sql = string.Format("CREATE UNIQUE CLUSTERED INDEX CIX_{0} ON [{1}].[{2}](ix)", or.Catalogue.Replace(" ", "_"), GetSchema(or), or.Catalogue);
+        sql = string.Format("CREATE UNIQUE CLUSTERED INDEX CIX_{0} ON [{1}].[{2}](ix)", or.Catalog.Replace(" ", "_"), GetSchema(or), or.Catalog);
         using (SqlCommand cmd = new SqlCommand(sql, con))
         {
           cmd.ExecuteNonQuery();
         }
 
-        sql = string.Format("EXEC sys.sp_addextendedproperty @name = N'Afx Managed', @value = N'Yes', @level0type = N'SCHEMA', @level0name = '{0}', @level1type = N'TABLE', @level1name = '{1}'", GetSchema(or), or.Catalogue);
+        sql = string.Format("EXEC sys.sp_addextendedproperty @name = N'Afx Managed', @value = N'Yes', @level0type = N'SCHEMA', @level0name = '{0}', @level1type = N'TABLE', @level1name = '{1}'", GetSchema(or), or.Catalog);
         using (SqlCommand cmd = new SqlCommand(sql, con))
         {
           cmd.ExecuteNonQuery();
@@ -325,7 +537,7 @@ namespace Afx.Data.MsSql
         Type t = typeof(ITableAlterationManager<>).MakeGenericType(or.SourceType);
         ITableManager am = (ITableManager)CompositionHelper.GetExportedValueOrDefault(t);
         bool bTableChangeFlag = false;
-        
+
 
         #region Get Database Columns
 
@@ -334,7 +546,7 @@ namespace Afx.Data.MsSql
         using (SqlCommand cmd = new SqlCommand(sqlColumns, con))
         {
           cmd.Parameters.AddWithValue("@ts", GetSchema(or));
-          cmd.Parameters.AddWithValue("@tn", or.Catalogue);
+          cmd.Parameters.AddWithValue("@tn", or.Catalog);
           ds = DbHelper.ExecuteDataSet(cmd);
         }
 
@@ -348,6 +560,9 @@ namespace Afx.Data.MsSql
         {
           using (StringWriter sw = new StringWriter())
           {
+            CollectionProperty colp = pp as CollectionProperty;
+            if (colp != null) return;
+
             SimpleProperty sp = pp as SimpleProperty;
             if (sp != null && sp.IsId) continue;
 
@@ -359,7 +574,7 @@ namespace Afx.Data.MsSql
                 am.BeforeTableChange(this);
               }
 
-              sw.Write("ALTER TABLE [{0}].[{1}]", GetSchema(or), or.Catalogue);
+              sw.Write("ALTER TABLE [{0}].[{1}]", GetSchema(or), or.Catalog);
               sw.Write(" ADD [{0}] {1}{2} NULL", pp.Name, GetFullSqlDataType(pp), !string.IsNullOrWhiteSpace(or.BinaryStorageName) ? " FILESTREAM" : string.Empty);
               using (SqlCommand cmd = new SqlCommand(sw.ToString(), con))
               {
@@ -383,7 +598,7 @@ namespace Afx.Data.MsSql
         using (SqlCommand cmd = new SqlCommand(sqlColumns, con))
         {
           cmd.Parameters.AddWithValue("@ts", GetSchema(or));
-          cmd.Parameters.AddWithValue("@tn", or.Catalogue);
+          cmd.Parameters.AddWithValue("@tn", or.Catalog);
           ds = DbHelper.ExecuteDataSet(cmd);
         }
 
@@ -406,7 +621,7 @@ namespace Afx.Data.MsSql
 
           using (StringWriter sw = new StringWriter())
           {
-            sw.Write("ALTER TABLE [{0}].[{1}] ALTER COLUMN ", GetSchema(or), or.Catalogue);
+            sw.Write("ALTER TABLE [{0}].[{1}] ALTER COLUMN ", GetSchema(or), or.Catalog);
             SimpleProperty sp = pp as SimpleProperty;
             if (sp != null && sp.IsId) continue;
 
@@ -437,7 +652,7 @@ namespace Afx.Data.MsSql
 
           using (StringWriter sw = new StringWriter())
           {
-            sw.Write("ALTER TABLE [{0}].[{1}]", GetSchema(or), or.Catalogue);
+            sw.Write("ALTER TABLE [{0}].[{1}]", GetSchema(or), or.Catalog);
             sw.Write(" DROP COLUMN [{0}]", droppedColumn);
             using (SqlCommand cmd = new SqlCommand(sw.ToString(), con))
             {
@@ -598,7 +813,7 @@ namespace Afx.Data.MsSql
 
     string ComposeFullSqlDataType(DataRow dr)
     {
-      string dataType = ((string)dr["DATA_TYPE"]).ToUpperInvariant(); 
+      string dataType = ((string)dr["DATA_TYPE"]).ToUpperInvariant();
       switch (dataType)
       {
         case DT_VARBINARY:
@@ -691,15 +906,15 @@ namespace Afx.Data.MsSql
         using (SqlCommand cmd = new SqlCommand(sql, con))
         {
           cmd.Parameters.AddWithValue("@osn", ownerRepo.Schema);
-          cmd.Parameters.AddWithValue("@otn", ownerRepo.Catalogue);
+          cmd.Parameters.AddWithValue("@otn", ownerRepo.Catalog);
           cmd.Parameters.AddWithValue("@ocn", ownerColumn);
           cmd.Parameters.AddWithValue("@rsn", requiredRepo.Schema);
-          cmd.Parameters.AddWithValue("@rtn", requiredRepo.Catalogue);
+          cmd.Parameters.AddWithValue("@rtn", requiredRepo.Catalog);
           cmd.Parameters.AddWithValue("@rcn", requiredColumn);
           ds = DbHelper.ExecuteDataSet(cmd);
         }
 
-        string sqlCreateConstraint = string.Format("ALTER TABLE [{0}].[{1}] ADD CONSTRAINT FK_{1}_{2} FOREIGN KEY ([{3}]) REFERENCES [{4}].[{2}]	([{5}]) ON UPDATE NO ACTION ON DELETE {6}", ownerRepo.Schema, ownerRepo.Catalogue, requiredRepo.Catalogue, ownerColumn, requiredRepo.Schema, requiredColumn, cascadeDelete ? "CASCADE" : "NO ACTION");
+        string sqlCreateConstraint = string.Format("ALTER TABLE [{0}].[{1}] ADD CONSTRAINT FK_{1}_{2} FOREIGN KEY ([{3}]) REFERENCES [{4}].[{2}]	([{5}]) ON UPDATE NO ACTION ON DELETE {6}", ownerRepo.Schema, ownerRepo.Catalog, requiredRepo.Catalog, ownerColumn, requiredRepo.Schema, requiredColumn, cascadeDelete ? "CASCADE" : "NO ACTION");
         if (ds.Tables[0].Rows.Count == 0)
         {
           using (SqlCommand cmd = new SqlCommand(sqlCreateConstraint, con))
@@ -717,7 +932,7 @@ namespace Afx.Data.MsSql
           string sDeleteCheck = cascadeDelete ? "CASCADE" : "NO ACTION";
           if (sUpdate != "NO ACTION" || sDelete != sDeleteCheck)
           {
-            string sqlDropConstraint = string.Format("ALTER TABLE [{0}].[{1}] DROP CONSTRAINT {2}", ownerRepo.Schema, ownerRepo.Catalogue, dr["ConstraintName"]);
+            string sqlDropConstraint = string.Format("ALTER TABLE [{0}].[{1}] DROP CONSTRAINT {2}", ownerRepo.Schema, ownerRepo.Catalog, dr["ConstraintName"]);
             using (SqlCommand cmd = new SqlCommand(sqlDropConstraint, con))
             {
               cmd.ExecuteNonQuery();
@@ -759,7 +974,7 @@ namespace Afx.Data.MsSql
 
       //    if (or.IsReadOnly)
       //    {
-      //      string sqlDropCreateView = string.Format("", GetSchema(or), or.Catalogue);
+      //      string sqlDropCreateView = string.Format("", GetSchema(or), or.Catalog);
       //      using (SqlCommand cmd = new SqlCommand(sqlDropCreateView, con))
       //      {
       //      }
@@ -781,56 +996,5 @@ namespace Afx.Data.MsSql
     #endregion
 
     #endregion
-
-
-    #region string RepositoryName
-
-    string mRepositoryName;
-    public string RepositoryName
-    {
-      get { return mRepositoryName; }
-      private set { mRepositoryName = value; }
-    }
-
-    #endregion
-
-    #region string ConnectionString
-
-    string mConnectionString;
-    public string ConnectionString
-    {
-      get { return mConnectionString; }
-      private set { mConnectionString = value; }
-    }
-
-    #endregion
-
-    #region string DatabaseName
-
-    string mDatabaseName;
-    public string DatabaseName
-    {
-      get { return mDatabaseName; }
-      private set { mDatabaseName = value; }
-    }
-
-    #endregion
-
-    #region string MasterConnectionString
-
-    public const string MasterConnectionStringProperty = "MasterConnectionString";
-    string mMasterConnectionString;
-    public string MasterConnectionString
-    {
-      get { return mMasterConnectionString; }
-      private set { mMasterConnectionString = value; }
-    }
-
-    #endregion
-
-    public AfxObject SaveObject(AfxObject obj, ObjectRepository objectRepository)
-    {
-      return null;
-    }
   }
 }

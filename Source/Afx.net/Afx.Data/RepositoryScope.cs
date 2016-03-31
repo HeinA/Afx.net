@@ -30,7 +30,7 @@ namespace Afx.Data
 
     public static string ConnectionName
     {
-      get { return (string)CallContext.LogicalGetData(RepositoryNameKey); }
+      get { return (string)CallContext.LogicalGetData(RepositoryNameKey) ?? DefaultRepositoryName; }
     }
   }
 }
