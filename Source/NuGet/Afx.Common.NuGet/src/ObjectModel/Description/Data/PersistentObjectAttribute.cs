@@ -52,5 +52,16 @@ namespace Afx.ObjectModel.Description.Data
     }
 
     #endregion
+
+    #region bool IsCached
+
+    bool mIsCached;
+    public bool IsCached
+    {
+      get { return mIsCached; }
+      set { mIsCached = value; }
+    }
+
+    #endregion
   }
 }

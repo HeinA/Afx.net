@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace Afx.Data
 {
-  public class ObjectRepository
+  public abstract class ObjectRepository
   {
     #region Constructors
 
@@ -48,6 +48,7 @@ namespace Afx.Data
 
       Catalog = poa.Catalog ?? type.Name;
       IsReadOnly = poa.IsReadOnly;
+      IsCached = poa.IsCached;
 
       foreach (Type t in SourceMetadata.Subtypes)
       {
@@ -144,7 +145,7 @@ namespace Afx.Data
 
     #region IDataRepository GetDataRepository(...)
 
-    IDataRepository GetDataRepository(string repositoryName)
+    protected IDataRepository GetDataRepository(string repositoryName)
     {
       if (!mDataRepositoryDictionary.ContainsKey(repositoryName))
       {
@@ -160,7 +161,11 @@ namespace Afx.Data
 
     #endregion
 
+    #region ObjectRepository BaseRepository
+
     public ObjectRepository BaseRepository { get; private set; }
+
+    #endregion
 
     #region Type SourceType
 
@@ -228,6 +233,17 @@ namespace Afx.Data
 
     #endregion
 
+    #region bool IsCached
+
+    bool mIsCached;
+    public bool IsCached
+    {
+      get { return mIsCached; }
+      private set { mIsCached = value; }
+    }
+
+    #endregion
+
     #region bool VerifyPersistanceChain(...)
 
     static bool VerifyPersistanceChain(Type type)
@@ -260,6 +276,8 @@ namespace Afx.Data
 
     #endregion
 
+    #region IEnumerable<ObjectRepository> ConcreteRepositories
+
     public IEnumerable<ObjectRepository> ConcreteRepositories
     {
       get
@@ -274,6 +292,8 @@ namespace Afx.Data
         }
       }
     }
+
+    #endregion
 
     #region string ToString(...)
 
@@ -301,6 +321,21 @@ namespace Afx.Data
 
     #endregion
 
+    #region AfxObject LoadObjects(...)
+
+    public ObjectCollection<AfxObject> LoadObjects()
+    {
+      return LoadObjects(RepositoryScope.ConnectionName);
+    }
+
+    public ObjectCollection<AfxObject> LoadObjects(string repositoryName)
+    {
+      IDataRepository idr = GetDataRepository(repositoryName);
+      return new ObjectCollection<AfxObject>(idr.LoadObjects(this));
+    }
+
+    #endregion
+
     #region AfxObject SaveObject(...)
 
     public AfxObject SaveObject(AfxObject obj)
@@ -313,7 +348,7 @@ namespace Afx.Data
       ObjectRepository or = GetRepository(obj.GetType()); //Ensure ObjectRepository is the actual type, not a base type.
       if (or.IsReadOnly) throw new InvalidOperationException(); //TODO: message
       IDataRepository idr = GetDataRepository(repositoryName);
-      return idr.SaveObject(obj, or); 
+      return idr.SaveObject(obj, or);
     }
 
     #endregion
@@ -343,7 +378,22 @@ namespace Afx.Data
 
     public new T LoadObject(Guid id)
     {
-      return (T)base.LoadObject(id, RepositoryScope.ConnectionName);
+      return (T)base.LoadObject(id);
+    }
+
+    #endregion
+
+    #region ObjectCollection<T> LoadObjects(...)
+
+    public new ObjectCollection<T> LoadObjects(string repositoryName)
+    {
+      IDataRepository idr = GetDataRepository(repositoryName);
+      return new ObjectCollection<T>(idr.LoadObjects(this).Cast<T>());
+    }
+
+    public new ObjectCollection<T> LoadObjects()
+    {
+      return this.LoadObjects(RepositoryScope.ConnectionName);
     }
 
     #endregion
@@ -357,7 +407,7 @@ namespace Afx.Data
 
     public T SaveObject(T obj)
     {
-      return (T)base.SaveObject(obj, RepositoryScope.ConnectionName);
+      return this.SaveObject(obj, RepositoryScope.ConnectionName);
     }
 
     #endregion

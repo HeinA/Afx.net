@@ -110,6 +110,26 @@ namespace Afx.Data.MsSql
       throw new InvalidOperationException(string.Format(Properties.Resources.InvalidObject, id));
     }
 
+    #endregion
+
+    #region IEnumerable<AfxObject> LoadObjects(...)
+
+    public IEnumerable<AfxObject> LoadObjects(ObjectRepository objectRepository)
+    {
+      foreach (var or in objectRepository.ConcreteRepositories)
+      {
+        DataSet ds = new SqlQuery(or).QueryAll(ConnectionString);
+        foreach(DataRow dr in ds.Tables[0].Rows)
+        {
+          AfxObject obj = (AfxObject)Activator.CreateInstance(or.SourceType);
+          LoadObject(obj, dr, or, new LoadContext());
+          yield return obj;
+        }
+      }
+    }
+
+    #endregion
+
     #region void LoadObject(...)
 
     void LoadObject(AfxObject obj, DataRow dr, ObjectRepository objectRepository, LoadContext context)
@@ -238,7 +258,6 @@ namespace Afx.Data.MsSql
 
     #endregion
 
-    #endregion
 
     #region AfxObject SaveObject(...)
 

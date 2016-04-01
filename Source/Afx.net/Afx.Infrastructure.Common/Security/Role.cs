@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 namespace Afx.Infrastructure.Security
 {
   [DataContract(Namespace = Constants.WcfNamespace, IsReference = true)]
-  [PersistentObject]
+  [PersistentObject(IsCached = true)]
   public class Role : AfxObject
   {
     #region string Name

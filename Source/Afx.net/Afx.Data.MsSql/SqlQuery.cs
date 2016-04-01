@@ -103,5 +103,25 @@ namespace Afx.Data.MsSql
         }
       }
     }
+
+    public DataSet QueryAll(string connectionString)
+    {
+      using (SqlConnection con = new SqlConnection(connectionString))
+      {
+        try
+        {
+          con.Open();
+
+          using (SqlCommand cmd = new SqlCommand(string.Format("SELECT {0} FROM {1} {2}", string.Join(", ", mColumns), mTableName, string.Join(" AND ", mJoins)), con))
+          {
+            return ExecuteDataSet(cmd);
+          }
+        }
+        finally
+        {
+          con.Close();
+        }
+      }
+    }
   }
 }

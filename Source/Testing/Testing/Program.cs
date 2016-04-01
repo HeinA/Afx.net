@@ -21,6 +21,8 @@ namespace Testing
     static void Main(string[] args)
     {
       ObjectRepository<User> or = ObjectRepository.GetRepository<User>();
+      Cache c = Cache.Instance;
+
       User u = or.LoadObject(new Guid("d30c3a34-a65a-4748-a8a8-958033af3077"));
       UserRole ur = u.Roles[u.Roles[0]];
       or.SaveObject(new User(), "Default");

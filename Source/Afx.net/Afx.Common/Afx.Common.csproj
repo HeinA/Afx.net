@@ -54,6 +54,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyHelper.cs" />
+    <Compile Include="ObjectModel\Cache.cs" />
     <Compile Include="ComponentModel\Composition\CompositionHelper.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="GlobalSuppressions.cs" />
@@ -61,6 +62,7 @@
     <Compile Include="ObjectModel\IAfxObject.cs" />
     <Compile Include="ObjectModel\IAggregateRoot.cs" />
     <Compile Include="ObjectModel\IAssociativeObject.cs" />
+    <Compile Include="ObjectModel\ICacheLoader.cs" />
     <Compile Include="ObjectModel\ObjectPropertyValidator.cs" />
     <Compile Include="ObjectModel\ObjectValidator.cs" />
     <Compile Include="ObjectModel\AssociativeObject.cs" />

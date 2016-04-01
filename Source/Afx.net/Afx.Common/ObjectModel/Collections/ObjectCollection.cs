@@ -20,6 +20,11 @@ namespace Afx.ObjectModel.Collections
     {
     }
 
+    public ObjectCollection(IEnumerable<TItem> collection)
+      : base(collection)
+    {
+    }
+
     internal ObjectCollection(AfxObject owner, string propertyName)
       : this()
     {
