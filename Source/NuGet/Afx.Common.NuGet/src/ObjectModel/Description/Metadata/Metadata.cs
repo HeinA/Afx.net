@@ -68,7 +68,11 @@ namespace Afx.ObjectModel.Description.Metadata
 
         if (pi.PropertyType.IsSubclassOf(typeof(AfxObject)))
         {
-          if (!mDirectDependencies.Contains(pi.PropertyType)) mDirectDependencies.Add(pi.PropertyType); 
+          if (!mDirectDependencies.Contains(pi.PropertyType)) mDirectDependencies.Add(pi.PropertyType);
+          //if (pi.PropertyType.GetMetadata().OwnerType.IsAssignableFrom(SourceType))
+          //{
+          //  mOwnedProperties.Add(pi);
+          //}
         }
 
         Type cgsc = AssemblyHelper.GetGenericSubClass(typeof(ObjectCollection<>), pi.PropertyType);
@@ -76,6 +80,7 @@ namespace Afx.ObjectModel.Description.Metadata
         {
           Type t = cgsc.GetGenericArguments()[0];
           if (!mDirectDependencies.Contains(t)) mDirectDependencies.Add(t);
+          mCollectionProperties.Add(pi);    
         }
 
         cgsc = AssemblyHelper.GetGenericSubClass(typeof(AssociativeCollection<,>), pi.PropertyType);
@@ -226,12 +231,32 @@ namespace Afx.ObjectModel.Description.Metadata
 
     #endregion
 
-    #region Collection<ValidationMetadata> ValidationAttributes
+    #region IEnumerable<ValidationMetadata> ValidationAttributes
 
     Collection<ValidationMetadata> mValidationMetadata = new Collection<ValidationMetadata>();
     internal IEnumerable<ValidationMetadata> ValidationMetadata
     {
       get { return mValidationMetadata; }
+    }
+
+    #endregion
+
+    //#region IEnumerable<PropertyInfo> OwnedProperties
+
+    //Collection<PropertyInfo> mOwnedProperties = new Collection<PropertyInfo>();
+    //internal IEnumerable<PropertyInfo> OwnedProperties
+    //{
+    //  get { return mOwnedProperties; }
+    //}
+
+    //#endregion
+
+    #region IEnumerable<PropertyInfo> CollectionProperties
+
+    Collection<PropertyInfo> mCollectionProperties = new Collection<PropertyInfo>();
+    internal IEnumerable<PropertyInfo> CollectionProperties
+    {
+      get { return mCollectionProperties; }
     }
 
     #endregion
@@ -246,6 +271,7 @@ namespace Afx.ObjectModel.Description.Metadata
         Type t = q.Dequeue();
         foreach (Type td in GetMetadata(t).Dependencies)
         {
+          if (td.Equals(t)) continue;
           if (!col.Contains(td))
           {
             q.Enqueue(t);

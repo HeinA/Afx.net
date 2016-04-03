@@ -12,7 +12,6 @@ namespace Afx.Infrastructure.Security
 {
 	[DataContract(Namespace = Constants.WcfNamespace, IsReference = true)]
 	[PersistentObject]  
-  [CompositeReference]
   public class UserRole : AssociativeObject<Afx.Infrastructure.Security.User, Afx.Infrastructure.Security.Role>
   {
   }

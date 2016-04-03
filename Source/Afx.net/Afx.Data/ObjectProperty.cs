@@ -37,12 +37,13 @@ namespace Afx.Data
       if (PropertyInfo.CanWrite) AllowRead = true;
     }
 
-    internal ObjectProperty(ObjectRepository objectRepository, PropertyInfo propertyInfo, string name)
+    internal ObjectProperty(ObjectRepository objectRepository, PropertyInfo propertyInfo, string name, bool allowNull)
     {
       ObjectRepository = objectRepository;
       PropertyInfo = propertyInfo;
 
       Name = name ?? PropertyInfo.Name;
+      AllowNull = allowNull;
 
       if (PropertyInfo.CanWrite) AllowRead = true;
     }

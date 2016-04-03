@@ -12,7 +12,7 @@ namespace Afx.Infrastructure.Security
 {
   [DataContract(Namespace = Constants.WcfNamespace, IsReference = true)]
   [PersistentObject(IsCached = true)]
-  public class Role : AfxObject
+  public class Role : AfxObject<Role>
   {
     #region string Name
 
@@ -25,6 +25,19 @@ namespace Afx.Infrastructure.Security
     {
       get { return mName; }
       set { SetProperty<string>(ref mName, value); }
+    }
+
+    #endregion
+
+    #region ObjectCollection<Role> SubRoles
+
+    public const string SubRolesProperty = "SubRoles";
+    Afx.ObjectModel.Collections.ObjectCollection<Role> mSubRoles;
+    [PersistentProperty]
+    [DataMember]
+    public Afx.ObjectModel.Collections.ObjectCollection<Role> SubRoles
+    {
+      get { return GetObjectCollection<Role>(ref mSubRoles); }
     }
 
     #endregion

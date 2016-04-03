@@ -17,6 +17,7 @@ namespace Afx.Data.MsSql
       mTableName = string.Format("[{0}].[{1}] AS [T]", objectRepository.Schema, objectRepository.Catalog);
       AddProperties(objectRepository, "T");
       BaseJoin(objectRepository.BaseRepository);
+      if (objectRepository.SourceMetadata.OwnerType != null) mIsCyclic = objectRepository.SourceMetadata.OwnerType.Equals(objectRepository.SourceType);
     }
 
     void AddProperties(ObjectRepository objectRepository, string alias)
@@ -33,6 +34,7 @@ namespace Afx.Data.MsSql
       }
     }
 
+    bool mIsCyclic = false;
     string mTableName;
     string mOwnerColumnName;
     string mOwnerAlias;
@@ -112,7 +114,7 @@ namespace Afx.Data.MsSql
         {
           con.Open();
 
-          using (SqlCommand cmd = new SqlCommand(string.Format("SELECT {0} FROM {1} {2}", string.Join(", ", mColumns), mTableName, string.Join(" AND ", mJoins)), con))
+          using (SqlCommand cmd = new SqlCommand(string.Format("SELECT {0} FROM {1} {2}{3}", string.Join(", ", mColumns), mTableName, string.Join(" AND ", mJoins), mIsCyclic ? string.Format(" WHERE [{0}].[{1}] IS NULL", mOwnerAlias, mOwnerColumnName) : string.Empty), con))
           {
             return ExecuteDataSet(cmd);
           }

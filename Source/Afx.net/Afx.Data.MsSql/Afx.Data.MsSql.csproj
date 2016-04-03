@@ -54,6 +54,7 @@
     <Compile Include="Configuration\FilestreamConfiguration.cs" />
     <Compile Include="Configuration\FileGroupCollection.cs" />
     <Compile Include="DbHelper.cs" />
+    <Compile Include="InsertStatement.cs" />
     <Compile Include="LoadContext.cs" />
     <Compile Include="MsSqlRepository.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -62,6 +63,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="SaveContext.cs" />
     <Compile Include="SchemaValdation\ITableManager.cs" />
     <Compile Include="SqlQuery.cs" />
   </ItemGroup>

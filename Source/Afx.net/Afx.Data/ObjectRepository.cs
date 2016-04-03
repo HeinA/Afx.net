@@ -64,7 +64,7 @@ namespace Afx.Data
       if (gsc != null)
       {
         PropertyInfo piOwner = SourceType.GetProperty(AfxObject.OwnerProperty);
-        AddProperty(piOwner, poa.Owner ?? piOwner.PropertyType.Name);
+        AddProperty(piOwner, poa.Owner ?? piOwner.PropertyType.Name, SourceMetadata.OwnerType.Equals(SourceType));
       }
 
       gsc = AssemblyHelper.GetGenericSubClass(typeof(AssociativeObject<,>), SourceType);
@@ -72,8 +72,8 @@ namespace Afx.Data
       {
         PropertyInfo piOwner = SourceType.GetProperty(AfxObject.OwnerProperty);
         PropertyInfo piReference = SourceType.GetProperty(AssociativeObject.ReferenceProperty);
-        AddProperty(piOwner, poa.Owner ?? piOwner.PropertyType.Name);
-        AddProperty(piReference, poa.Reference ?? piReference.PropertyType.Name);
+        AddProperty(piOwner, poa.Owner ?? piOwner.PropertyType.Name, false);
+        AddProperty(piReference, poa.Reference ?? piReference.PropertyType.Name, false);
       }
 
       foreach (var pi in SourceType.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly).Where(pi1 => pi1.GetCustomAttribute<PersistentPropertyAttribute>() != null))
@@ -100,9 +100,9 @@ namespace Afx.Data
       else mProperties.Add(new SimpleProperty(this, pi));
     }
 
-    void AddProperty(PropertyInfo pi, string name)
+    void AddProperty(PropertyInfo pi, string name, bool allowNull)
     {
-      if (pi.PropertyType.IsSubclassOf(typeof(AfxObject))) mProperties.Add(new ComplexProperty(this, pi, name));
+      if (pi.PropertyType.IsSubclassOf(typeof(AfxObject))) mProperties.Add(new ComplexProperty(this, pi, name, allowNull));
       else if (typeof(IObjectCollection).IsAssignableFrom(pi.PropertyType)) throw new InvalidOperationException(); //TODO: message
       else throw new InvalidOperationException(); //TODO: message
     }
@@ -282,7 +282,6 @@ namespace Afx.Data
     {
       get
       {
-        if (!SourceMetadata.IsAbstract) yield return this;
         foreach (var or in this.SubRepositories)
         {
           foreach (var or1 in or.ConcreteRepositories)
@@ -290,6 +289,7 @@ namespace Afx.Data
             yield return or1;
           }
         }
+        if (!SourceMetadata.IsAbstract) yield return this;
       }
     }
 

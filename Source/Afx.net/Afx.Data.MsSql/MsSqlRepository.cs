@@ -1,4 +1,5 @@
-﻿using Afx.ComponentModel.Composition;
+﻿using Afx.Cache;
+using Afx.ComponentModel.Composition;
 using Afx.Data.Configuration;
 using Afx.Data.MsSql.Configuration;
 using Afx.Data.MsSql.SchemaValidation;
@@ -92,6 +93,7 @@ namespace Afx.Data.MsSql
 
     #endregion
 
+
     #region AfxObject LoadObject(...)
 
     public AfxObject LoadObject(Guid id, ObjectRepository objectRepository)
@@ -107,7 +109,7 @@ namespace Afx.Data.MsSql
         }
       }
 
-      throw new InvalidOperationException(string.Format(Properties.Resources.InvalidObject, id));
+      return null;
     }
 
     #endregion
@@ -160,7 +162,7 @@ namespace Afx.Data.MsSql
       foreach (var p in objectRepository.Properties.OfType<CollectionProperty>())
       {
         object col = p.PropertyInfo.GetValue(obj);
-        IAssociativeCollection acol = (IAssociativeCollection)col;
+        IAssociativeCollection acol = col as IAssociativeCollection;
         if (acol != null)
         {
           LoadAssociativeObjects(obj, acol, context);
@@ -195,7 +197,7 @@ namespace Afx.Data.MsSql
           // Otherwise set a reference to the object from the Memory Cache.
           if (referenceObject == null)
           {
-            //TODO: Load from Memory Cache
+            referenceObject = MemoryCache.GetObject(referenceGuid);
           }
 
           // Otherwise load the object from the Database.
@@ -259,15 +261,90 @@ namespace Afx.Data.MsSql
     #endregion
 
 
+
     #region AfxObject SaveObject(...)
 
     public AfxObject SaveObject(AfxObject obj, ObjectRepository objectRepository)
     {
-      return null;
+      AfxObject objTarget = LoadObject(obj.Id, objectRepository);
+      SaveObject(obj, objTarget, objectRepository, new SaveContext());
+      return LoadObject(obj.Id, objectRepository);
     }
 
     #endregion
 
+    void SaveObject(AfxObject obj, AfxObject objTarget, ObjectRepository objectRepository, SaveContext context)
+    {
+      if (objTarget == null) InsertObject(obj, objectRepository, context);
+      else UpdateObject(obj, objTarget, objectRepository, context);
+    }
+
+    void InsertObject(AfxObject obj, ObjectRepository objectRepository, SaveContext context)
+    {
+      if (objectRepository == null) return;
+      InsertObject(obj, objectRepository.BaseRepository, context);
+      InsertStatement i = new InsertStatement(objectRepository);
+      i.Execute(obj, ConnectionString);
+
+      foreach (var p in objectRepository.Properties.OfType<CollectionProperty>())
+      {
+        object col = p.PropertyInfo.GetValue(obj);
+        IAssociativeCollection acol = col as IAssociativeCollection;
+        if (acol != null)
+        {
+          AssociativeMetadata amd = (AssociativeMetadata)acol.AssociativeType.GetMetadata();
+          ObjectRepository orAssociative = ObjectRepository.GetRepository(acol.AssociativeType);
+
+          if (amd.IsCompositeReference)
+          {
+            ObjectRepository orReference = ObjectRepository.GetRepository(acol.ItemType);
+            foreach (AfxObject obj1 in acol.Keys)
+            {
+              InsertObject(obj1, orReference, context);
+            }
+          }
+
+          foreach (AfxObject obj1 in acol.Values)
+          {
+            InsertObject(obj1, orAssociative, context);
+          }
+        }
+        else
+        {
+          IObjectCollection ocol = (IObjectCollection)col;
+          ObjectRepository orItem = ObjectRepository.GetRepository(ocol.ItemType);
+
+          foreach (AfxObject obj1 in ocol)
+          {
+            InsertObject(obj1, orItem, context);
+          }
+        }
+      }
+    }
+
+    void UpdateObject(AfxObject obj, AfxObject objTarget, ObjectRepository objectRepository, SaveContext context)
+    {
+      if (objectRepository == null) return;
+      UpdateObject(obj, objTarget, objectRepository.BaseRepository, context);
+
+      if (IsDirty(obj, objTarget, objectRepository))
+      {
+        
+      }
+    }
+
+    bool IsDirty(AfxObject obj, AfxObject objTarget, ObjectRepository objectRepository)
+    {
+      bool isDirty = false;
+
+      foreach (var p in objectRepository.Properties)
+      {
+        if (p is CollectionProperty) continue;
+        if (!Object.Equals(p.PropertyInfo.GetValue(obj), p.PropertyInfo.GetValue(objTarget))) return true;
+      }
+
+      return isDirty;
+    }
 
     #region Database Schema Validation
 
@@ -498,11 +575,14 @@ namespace Afx.Data.MsSql
         using (StringWriter sw = new StringWriter())
         {
           //sw.Write("CREATE TABLE [{0}].[{1}] ([ix] INT NOT NULL IDENTITY(1,1) PRIMARY KEY, [id] UNIQUEIDENTIFIER ROWGUIDCOL NOT NULL UNIQUE", GetSchema(or), or.Catalog);
-          sw.Write("CREATE TABLE [{0}].[{1}] ([id] UNIQUEIDENTIFIER ROWGUIDCOL NOT NULL, [ix] INT NOT NULL IDENTITY(1,1)", GetSchema(or), or.Catalog);
+          sw.Write("CREATE TABLE [{0}].[{1}] ([id] UNIQUEIDENTIFIER ROWGUIDCOL DEFAULT (NEWID()) NOT NULL, [ix] INT NOT NULL IDENTITY(1,1)", GetSchema(or), or.Catalog);
           foreach (var pp in or.Properties)
           {
             SimpleProperty sp = pp as SimpleProperty;
             if (sp != null && sp.IsId) continue;
+
+            CollectionProperty colp = pp as CollectionProperty;
+            if (colp != null) continue;
 
             sw.Write(", ");
             sw.Write("[{0}] {1}{2}", pp.Name, GetFullSqlDataType(pp), !string.IsNullOrWhiteSpace(or.BinaryStorageName) ? " FILESTREAM" : string.Empty);

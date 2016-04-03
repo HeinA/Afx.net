@@ -8,12 +8,12 @@ using System.Threading.Tasks;
 
 namespace Afx.ObjectModel
 {
-  public class Cache
+  public class MemoryCache
   {
     ICacheLoader Loader { get; set; }
     Dictionary<Guid, AfxObject> ObjectDictionary { get; set; }
 
-    Cache()
+    MemoryCache()
     {
       ObjectDictionary = new Dictionary<Guid, AfxObject>();
       Loader = ComponentModel.Composition.CompositionHelper.GetExportedValueOrDefault<ICacheLoader>();
@@ -32,11 +32,11 @@ namespace Afx.ObjectModel
       else ObjectDictionary.Add(obj.Id, obj);
     }
 
-    static Cache Instance { get; set; }
+    static MemoryCache Instance { get; set; }
     
     public static void Initialize()
     {
-      Instance = new Cache();
+      Instance = new MemoryCache();
     }
 
     public static AfxObject GetObject(Guid id)

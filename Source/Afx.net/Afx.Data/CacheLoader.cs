@@ -1,4 +1,5 @@
-﻿using Afx.ObjectModel;
+﻿using Afx.Cache;
+using Afx.ObjectModel;
 using Afx.ObjectModel.Description.Metadata;
 using System;
 using System.Collections.Generic;

@@ -13,6 +13,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Testing.Services;
+using Afx.Cache;
 
 namespace Testing
 {
@@ -21,11 +22,14 @@ namespace Testing
     static void Main(string[] args)
     {
       ObjectRepository<User> or = ObjectRepository.GetRepository<User>();
-      Cache c = Cache.Instance;
+      MemoryCache.Initialize();
 
-      User u = or.LoadObject(new Guid("d30c3a34-a65a-4748-a8a8-958033af3077"));
-      UserRole ur = u.Roles[u.Roles[0]];
-      or.SaveObject(new User(), "Default");
+      User u = or.LoadObject(new Guid("1f49b30f-3ad0-47e3-a8c1-5b4324f7fdad"));
+
+      User u1 = new User();
+      u1.Roles.Add(u.Roles[0]);
+      u1.UserName = "aaa";
+      User uu = or.SaveObject(u1);
 
       Console.WriteLine("...");
       Console.ReadKey();

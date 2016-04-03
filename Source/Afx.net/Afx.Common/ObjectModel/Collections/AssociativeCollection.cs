@@ -95,11 +95,6 @@ namespace Afx.ObjectModel.Collections
 
     #region IAssociativeCollection
 
-    //Type IObjectCollection.ItemType
-    //{
-    //  get { return typeof(TItem); }
-    //}
-
     Type IAssociativeCollection.AssociativeType
     {
       get { return typeof(TAssociative); }

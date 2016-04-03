@@ -14,8 +14,8 @@ namespace Afx.Data
     {
     }
 
-    internal ComplexProperty(ObjectRepository objectRepository, PropertyInfo propertyInfo, string name)
-      : base(objectRepository, propertyInfo, name)
+    internal ComplexProperty(ObjectRepository objectRepository, PropertyInfo propertyInfo, string name, bool allowNull)
+      : base(objectRepository, propertyInfo, name, allowNull)
     {
     }
 
