@@ -1,0 +1,64 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25123.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Afx.Common", "Source\Afx.net\Afx.Common\Afx.Common.csproj", "{EE358D37-3303-4AD2-8357-CE13449AD210}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Afx.ServiceModel", "Source\Afx.net\Afx.ServiceModel\Afx.ServiceModel.csproj", "{F1F15C83-B726-4F88-B22E-1D71D6A2C181}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Afx.Data", "Source\Afx.net\Afx.Data\Afx.Data.csproj", "{3528547F-DB4A-4770-8550-5F3D234D46F3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Afx.Data.MsSql", "Source\Afx.net\Afx.Data.MsSql\Afx.Data.MsSql.csproj", "{EED4414B-E515-4EDF-877F-8EA2F5D88751}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Afx.net", "Afx.net", "{6B6664FE-C6F3-43E1-BB23-64F5678FBE35}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Afx.Common.NuGet", "Source\NuGet\Afx.Common.NuGet\Afx.Common.NuGet.csproj", "{0451BAEF-DF2E-4B98-8644-94EE9415E389}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "NuGet", "NuGet", "{0578979B-34E3-414C-B7F5-56C49A5FF227}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Afx.ServiceModel.NuGet", "Source\NuGet\Afx.ServiceModel.NuGet\Afx.ServiceModel.NuGet.csproj", "{B53A2C91-D336-46B2-80BF-1DD6FBC9041F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{EE358D37-3303-4AD2-8357-CE13449AD210}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EE358D37-3303-4AD2-8357-CE13449AD210}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EE358D37-3303-4AD2-8357-CE13449AD210}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EE358D37-3303-4AD2-8357-CE13449AD210}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F1F15C83-B726-4F88-B22E-1D71D6A2C181}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F1F15C83-B726-4F88-B22E-1D71D6A2C181}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F1F15C83-B726-4F88-B22E-1D71D6A2C181}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F1F15C83-B726-4F88-B22E-1D71D6A2C181}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3528547F-DB4A-4770-8550-5F3D234D46F3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3528547F-DB4A-4770-8550-5F3D234D46F3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3528547F-DB4A-4770-8550-5F3D234D46F3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3528547F-DB4A-4770-8550-5F3D234D46F3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EED4414B-E515-4EDF-877F-8EA2F5D88751}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EED4414B-E515-4EDF-877F-8EA2F5D88751}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EED4414B-E515-4EDF-877F-8EA2F5D88751}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EED4414B-E515-4EDF-877F-8EA2F5D88751}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0451BAEF-DF2E-4B98-8644-94EE9415E389}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0451BAEF-DF2E-4B98-8644-94EE9415E389}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0451BAEF-DF2E-4B98-8644-94EE9415E389}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0451BAEF-DF2E-4B98-8644-94EE9415E389}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B53A2C91-D336-46B2-80BF-1DD6FBC9041F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B53A2C91-D336-46B2-80BF-1DD6FBC9041F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B53A2C91-D336-46B2-80BF-1DD6FBC9041F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B53A2C91-D336-46B2-80BF-1DD6FBC9041F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{EE358D37-3303-4AD2-8357-CE13449AD210} = {6B6664FE-C6F3-43E1-BB23-64F5678FBE35}
+		{F1F15C83-B726-4F88-B22E-1D71D6A2C181} = {6B6664FE-C6F3-43E1-BB23-64F5678FBE35}
+		{3528547F-DB4A-4770-8550-5F3D234D46F3} = {6B6664FE-C6F3-43E1-BB23-64F5678FBE35}
+		{EED4414B-E515-4EDF-877F-8EA2F5D88751} = {6B6664FE-C6F3-43E1-BB23-64F5678FBE35}
+		{0451BAEF-DF2E-4B98-8644-94EE9415E389} = {0578979B-34E3-414C-B7F5-56C49A5FF227}
+		{B53A2C91-D336-46B2-80BF-1DD6FBC9041F} = {0578979B-34E3-414C-B7F5-56C49A5FF227}
+	EndGlobalSection
+EndGlobal

@@ -83,11 +83,7 @@ namespace Afx.Data.MsSql
 
       if (repositoryConfiguration.ValidateSchema)
       {
-        using (TransactionScope scope = new TransactionScope(TransactionScopeOption.RequiresNew))
-        {
-          ValidateRepository();
-          scope.Complete();
-        }
+        ValidateRepository();
       }
     }
 
@@ -403,65 +399,61 @@ namespace Afx.Data.MsSql
 
     private void VerifyDatabase()
     {
-      using (TransactionScope scope = new TransactionScope(TransactionScopeOption.Suppress))
+      using (SqlConnection con = new SqlConnection(ConnectionString))
       {
-        using (SqlConnection con = new SqlConnection(ConnectionString))
+        con.Open();
+
+        using (SqlCommand cmd = new SqlCommand("EXEC sp_configure filestream_access_level, 2", con))
         {
-          con.Open();
+          cmd.ExecuteNonQuery();
+        }
 
-          using (SqlCommand cmd = new SqlCommand("EXEC sp_configure filestream_access_level, 2", con))
-          {
-            cmd.ExecuteNonQuery();
-          }
+        using (SqlCommand cmd = new SqlCommand("RECONFIGURE", con))
+        {
+          cmd.ExecuteNonQuery();
+        }
 
-          using (SqlCommand cmd = new SqlCommand("RECONFIGURE", con))
+        if (FilestreamConfiguration.Default != null)
+        {
+          foreach (FileGroup fg in FilestreamConfiguration.Default.Groups.OfType<FileGroup>().Where(g => g.Repository == RepositoryName))
           {
-            cmd.ExecuteNonQuery();
-          }
-
-          if (FilestreamConfiguration.Default != null)
-          {
-            foreach (FileGroup fg in FilestreamConfiguration.Default.Groups.OfType<FileGroup>().Where(g => g.Repository == RepositoryName))
+            string sql = "SELECT F.name as [FileName], F.physical_name as [FileLocation] FROM sys.filegroups AS FG LEFT OUTER JOIN sys.database_files AS F ON FG.data_space_id = F.data_space_id where FG.type='FD' and FG.name=@fg";
+            DataSet ds = null;
+            using (SqlCommand cmd = new SqlCommand(sql, con))
             {
-              string sql = "SELECT F.name as [FileName], F.physical_name as [FileLocation] FROM sys.filegroups AS FG LEFT OUTER JOIN sys.database_files AS F ON FG.data_space_id = F.data_space_id where FG.type='FD' and FG.name=@fg";
-              DataSet ds = null;
+              cmd.Parameters.AddWithValue("@fg", fg.Name);
+              ds = DbHelper.ExecuteDataSet(cmd);
+            }
+
+            if (ds.Tables[0].Rows.Count == 0)
+            {
+              sql = string.Format("ALTER DATABASE [{0}] ADD FILEGROUP {1} CONTAINS FILESTREAM", DatabaseName, fg.Name);
               using (SqlCommand cmd = new SqlCommand(sql, con))
               {
-                cmd.Parameters.AddWithValue("@fg", fg.Name);
-                ds = DbHelper.ExecuteDataSet(cmd);
+                cmd.ExecuteNonQuery();
               }
+            }
 
-              if (ds.Tables[0].Rows.Count == 0)
+            foreach (Filestream fs in fg.Files)
+            {
+              if (!DoesFileExist(fs.Name, ds))
               {
-                sql = string.Format("ALTER DATABASE [{0}] ADD FILEGROUP {1} CONTAINS FILESTREAM", DatabaseName, fg.Name);
+                DirectoryInfo di = new DirectoryInfo(fs.Folder);
+                if (di.Parent != null && !di.Parent.Exists) di.Parent.Create();
+
+                sql = string.Format("ALTER DATABASE [{0}] ADD FILE (NAME = {3}, FILENAME = '{2}') TO FILEGROUP {1}", DatabaseName, fg.Name, fs.Folder, fs.Name);
                 using (SqlCommand cmd = new SqlCommand(sql, con))
                 {
                   cmd.ExecuteNonQuery();
                 }
               }
-
-              foreach (Filestream fs in fg.Files)
-              {
-                if (!DoesFileExist(fs.Name, ds))
-                {
-                  DirectoryInfo di = new DirectoryInfo(fs.Folder);
-                  if (di.Parent != null && !di.Parent.Exists) di.Parent.Create();
-
-                  sql = string.Format("ALTER DATABASE [{0}] ADD FILE (NAME = {3}, FILENAME = '{2}') TO FILEGROUP {1}", DatabaseName, fg.Name, fs.Folder, fs.Name);
-                  using (SqlCommand cmd = new SqlCommand(sql, con))
-                  {
-                    cmd.ExecuteNonQuery();
-                  }
-                }
-              }
             }
           }
-
-          con.Close();
         }
 
-        scope.Complete();
+        con.Close();
       }
+
     }
 
     bool DoesFileExist(string fileName, DataSet dsFiles)
